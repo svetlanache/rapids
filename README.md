@@ -52,6 +52,7 @@ seed = 123
 simdata = simulate.data (N , L , K, rho1, rho2, rho0, mu1, mu2, mu0, sigma1, sigma2, sigma0, perc.sp, rr.nsp.treat, rr.con, rr.sp.treat, runs, seed)
 
 ## Analyse simulate data with the "cvrs" methods
+data(simdata)
 sig = 0.05
 group.prop.sig = 0.2
 method = "cvrs"
@@ -64,6 +65,7 @@ G = NULL
 simres.cvrs = analyse.simdata (simdata, sig, group.prop.sig, method, eta, R, G, seed, plotrs)
 
 ## Analyse simulated data with the "cvasd" method
+data(simdata)
 sig = 0.05
 group.prop.sig = 0.2
 method = "cvasd"
