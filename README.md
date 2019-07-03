@@ -1,6 +1,5 @@
 # rapids
 # installation
-library('devtools')
-
+library('devtools')<br/>
 install_github('svetlanache/rapids')
 # example
