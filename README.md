@@ -64,6 +64,9 @@ G = NULL
 
 simres.cvrs = analyse.simdata (simdata, sig, group.prop.sig, method, eta, R, G, seed, plotrs)
 
+## Plot the results
+plot(simres.cvrs)
+
 ## Analyse simulated data with the "cvasd" method
 data(simdata)
 sig = 0.05
@@ -75,6 +78,9 @@ eta = c(0.01, 0.02, 0.03)
 R = c(2.5, 2, 1.5)
 G = c(3,2,1)
 simres.cvasd = analyse.simdata (simdata, sig, group.prop.sig, method, eta, R, G, seed, plotrs)
+
+## Plot the results
+plot(simres.cvasd)
  
 ```
    
