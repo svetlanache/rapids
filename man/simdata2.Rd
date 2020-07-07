@@ -4,7 +4,8 @@
 \name{simdata2}
 \alias{simdata2}
 \title{Simulated data}
-\format{A list of 4 data frames: patients, covar, response, response2. The list corresponds to the output of the \code{simulate.data2} function.
+\format{
+A list of 4 data frames: patients, covar, response, response2. The list corresponds to the output of the \code{simulate.data2} function.
 
         patients: A data frame with one row per patient and the following columns: 
         FID (family ID), IID (individual ID), , sens.resp.true (true sensitivity to response),
@@ -21,7 +22,8 @@
 
         response2: A data frame of simulated binary response 2, one column per simulation run.
         
-        The order of the patients in the data frames should match.}
+        The order of the patients in the data frames should match.
+}
 \usage{
 data(simdata2)
 }
