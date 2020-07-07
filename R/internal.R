@@ -368,3 +368,138 @@ sens.cvrs = function(patients, covar, y, seed)
 
         return (ret)
 }
+
+#' @title Get subgroup of sensitive patiens according to the "cvrs" method for 2 outcomes.
+#'
+#' @description
+#' For two vectors of binary responsess, get sensitive patients by risk scores and k-means.      
+#' In the testing subsets, the risk scores are computed based on the treatment-covariate interaction
+#' effects from the training subsets.
+#' The two sets of the risk scores are divided into 4 clusters by a k-means clustering.
+#' cluster 1 corresponsds to low values of both response and response2,
+#' cluster 2 corresponss to low values of response and high values of response2,
+#' cluster 3 corresponds to high values of response and low values of response2,
+#' cluster 4 corresponds to high values of both response and response2.
+#'
+#' @param  patients - a data frame with patients inormation 
+#'         covar - a data frame with covariates
+#'         response - a first vector of responses 
+#'         response2 - a second vector of binary response
+#'         seed - a seed for random number generator
+#'
+#' @return A list of 4 :
+#'          psens - sensitivity of identifying the sensitive group (w.r.t. every cluster), a vector of the length nclust per simulation run 
+#'          pspec - specificity of identifying the sensitive group(w.r.t. every cluster), a vector of the length nclust per simulation run 
+#'          sens.pred - predicted sensitivity status (rows = patienst, columns = simulations)
+#'          cvrs - a matrix of the risk scores (rows = patients, columns = simulations).  
+#'          cvrs2 - a matrix of the risk scores for response2 (row = patients, colmns = simulations)
+#' @author Svetlana Cherlin, James Wason
+#' @importFrom "VGAM" "vglm"
+#' @importFrom "VGAM" "binom2.or"
+
+
+sens.cvrs2 = function(patients, covar, response, response2, seed, nclust)
+{
+        if (!is.null(seed)) {
+           set.seed(seed)
+        }
+        ## Divide to folds 
+        nfolds = 10
+        foldid = sample(rep(seq(nfolds), length = nrow(patients)))
+        sens.df = data.frame()
+
+        ## CV loop
+       for (i in seq(nfolds)) {
+           which = foldid == i
+           patients.train = patients[!which,]
+           patients.test = patients[which,]
+           covar.train = covar[!which,]
+           covar.test = covar[which,]
+           response.train = response[!which]
+           response.test = response[which]
+           response2.train = response2[!which]
+           response2.test = response2[which]
+
+           ## Fit a single-covariate regression model for the training data for response and response2
+           reg = apply (as.matrix(covar.train), 2, function (x)
+           {
+                dat = data.frame(response.train = response.train, response2.train = response2.train, treat.train = patients.train$treat, covarx.train = x)
+                if (with(patients, exists('cluster.true'))) { #sim. data  
+                   mod = tryCatch({vglm(cbind(response.train, response2.train) ~ treat.train:covarx.train, data = dat, binom2.or)}, error = function(e) e, warning = function(w) w)
+                } else { #real data
+                   mod = tryCatch({vglm(cbind(response.train, response2.train) ~ treat.train + covarx.train + treat.train:covarx.train, data = dat, binom2.or)}, error = function(e) e, warning = function(w) w)
+                }
+
+                if (is(mod, "error") | is (mod, "warning")) {
+                      beta.resp = 0
+		      beta.resp2 = 0
+                } else if (is.na(logLik(mod))){
+		      beta.resp = 0
+                      beta.resp2 = 0
+		} else { 
+                   beta.resp = coefficients(mod)[names(coefficients(mod)) == "treat.train:covarx.train:1"]
+                   beta.resp2 = coefficients(mod)[names(coefficients(mod)) == "treat.train:covarx.train:2"]
+		}
+                cbind(beta.resp, beta.resp2)
+
+           })
+           reg = t(as.matrix(reg))
+           colnames(reg) = c("beta.resp", "beta.resp2")
+           reg = as.data.frame(reg)
+           ## compute risk scores for response and response2 
+           risk.scores = apply(as.matrix(covar.test), 1, function (x)
+           {
+                 cvrs = t(as.matrix(x)) %*% reg$beta.resp
+                 cvrs2 = t(as.matrix(x)) %*% reg$beta.resp2
+                 cbind(cvrs, cvrs2)
+           })
+           risk.scores = t(as.matrix(risk.scores))
+           colnames(risk.scores) = c("cvrs", "cvrs2")
+           risk.scores = as.data.frame(risk.scores)
+           sens.fold = data.frame(FID = patients.test$FID, IID = patients.test$IID, cvrs = risk.scores$cvrs, cvrs2 = risk.scores$cvrs2)
+
+           ## Divide testing data to clusters by applying k-means to CVRS within each fold
+	   km = tryCatch ({kmeans(sens.fold[, 3:4], nclust, iter.max = 25, nstart = nrow(sens.fold))}, error = function(e) e, warning = function(w) w)
+           if (is(km, "error") | is (km, "warning")) {
+              message(km)
+              sens.fold$cluster.pred = 0
+              return(sens.fold)
+           } else {
+              centers.sorted = km$centers[order(km$centers[,1], km$centers[,2]),] #sort the clusters according to the centers
+              cluster.sorted = numeric(length = length(km$cluster))
+	      for (i in 1:nclust) {
+                 cluster.sorted[km$cluster == rownames(centers.sorted)[i]] = i
+              }
+              sens.fold$cluster.pred = cluster.sorted
+	   }
+	   sens.df = rbind(sens.df, sens.fold)     
+        } # End of CV loop
+
+        m = match (paste(as.character(patients$FID), as.character(patients$IID), sep = ":"),
+                   paste(as.character(sens.df$FID), as.character(sens.df$IID), sep = ":"))
+        sens.df = sens.df[m,]
+
+	## For simulated data, compute sensitivity and specificity with respect to every cluster
+        if (with(patients, exists('cluster.true'))) {
+	   psens = numeric(length = nclust)
+	   pspec = numeric(length = nclust)
+	   for (i in 1:nclust) {
+	      sens.true = numeric(length = nrow(patients))
+	      sens.pred = numeric(length = nrow(patients))
+	      sens.true[patients$cluster.true == i] = 1
+	      sens.pred[sens.df$cluster.pred == i] = 1 
+              conf = matrix(nrow = 2, ncol = 2,
+                 data = c(sum(!sens.pred & !sens.true), #predicted sens. group = 0, true sens. group = 0 [1,1]
+                      sum(!sens.pred & sens.true),      #predicted sens. group = 0, true sens. group = 1 [1,2]
+                      sum(sens.pred & !sens.true),      #predicted sens. group = 1, true sens. group = 0 [2,1]
+                      sum(sens.pred & sens.true)),      #predicted sens. group = 1, true sens. group = 1 [2,2]
+                   byrow = TRUE)
+              psens[i] = conf[2,2]/(conf[2,2] + conf[1,2])
+              pspec[i] = conf[1,1]/(conf[1,1] + conf[2,1])
+	   }
+	   ret = list(psens = psens, pspec = pspec, cvrs = sens.df$cvrs, cvrs2 = sens.df$cvrs2, cluster.pred = sens.df$cluster.pred)
+        } else {
+           ret  = sens.df
+        }
+        return (ret)
+} 

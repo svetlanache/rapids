@@ -27,8 +27,6 @@
 
 cvrs.plot = function(cvrs, sens.pred) 
 {
-
-
    cvrs = as.data.frame(cvrs)
    sens.pred = as.data.frame(sens.pred)
    N = nrow(cvrs)
@@ -48,6 +46,71 @@ cvrs.plot = function(cvrs, sens.pred)
    ggsave("CVRSplot.png")
 }
 
+#' @title Plot the risk scores for two outcomes
+#' @description The function plots the risk scores
+#' @param cvrs A data frame of the  risk scores 1
+#' @param cvrs2 A data frame of the  risk scores 2
+#' @param sens.pred A data frame of the predicted sensitivity statuses
+#' @param cluster.pred Predicted clusters
+#' @param cluster.pred True clusters
+#' @param sim An indicator of whether the data is simulated or real
+#' @return A ggplot object
+
+#' @details A plot of the risk scores is produced and saved into a ggplot object
+#' @author Svetlana Cherlin, James Wason
+#' @examples
+#' #Analyse simulated data and plot the risk scores
+#' data(simdata)
+#' sig = 0.05
+#' group.prop.sig = 0.2
+#' seed = 123
+#' plotrs = T
+#' simres.cvrs2 = analyse.simdata2(simdata2, sig, group.prop.sig, seed, plotrs)
+#'  #Plot the risk scores
+#' cvrs2.plot(simres.cvrs2$cvrs, simres.cvrs2$cvrs2, simres.cvrs2$cluster.pred, simdata2$patients$cluster.true, TRUE)
+#' @seealso
+#' \code{\link{analyse.simdata2}} and \code{\link{analyse.realdata2}} functions; \code{\link{plot}} and \code{\link{print}} methods.
+#' @export
+#' @importFrom "ggplot2" "ggplot" "aes" "geom_point" "labs" "theme" "scale_colour_continuous" "guides" "guide_legend" 
+#' @importFrom "gridExtra" "grid.arrange"
+
+cvrs2.plot = function(cvrs, cvrs2, cluster.pred, cluster.true = NULL, sim = FALSE)
+
+{
+   runs = ncol(cvrs)
+   cluster.pred = as.vector(cluster.pred)
+   cvrs.vec = as.vector(cvrs)
+   cvrs2.vec = as.vector(cvrs2)
+
+  if (sim) {
+     cluster.true = rep(cluster.true, runs)
+     dat = data.frame(cvrs.vec, cvrs2.vec, cluster.pred, cluster.true)
+     plotcvrs = ggplot(dat, aes(x = cvrs.vec, y=cvrs2.vec, color = cluster.pred)) +
+     geom_point(fill = "transparent", shape = 21, size = 2, stroke = 0.5) +
+     labs(x = "CVRS", y = "CVRS2", title = "Risk scores coloured by the predicted clusters") +
+     theme(legend.position = "bottom") +
+     scale_colour_continuous(name  = "Predicted clusters") +
+     guides(colour = guide_legend(override.aes = list(shape = 15)))
+
+     plot.sim = ggplot(dat, aes(x = cvrs.vec, y=cvrs2.vec, color = cluster.true)) +
+     geom_point(fill = "transparent", shape = 21, size = 2, stroke = 0.5) +
+     labs(x = "CVRS", y = "CVRS2", title = "Risk scores coloured by the true clusters") +
+     theme(legend.position = "bottom") +
+     scale_colour_continuous(name  = "True clusters") +
+     guides(colour = guide_legend(override.aes = list(shape = 15)))
+     plot.temp = plotcvrs
+     plotcvrs = grid.arrange(plot.temp, plot.sim, ncol=1)
+   } else {
+     dat = data.frame(cvrs.vec, cvrs2.vec, cluster.pred)
+     plotcvrs = ggplot(dat, aes(x = cvrs.vec, y=cvrs2.vec, color = cluster.pred)) +
+     geom_point(fill = "transparent", shape = 21, size = 2, stroke = 0.5) +
+     labs(x = "CVRS", y = "CVRS2", title = "Risk scores coloured by the predicted clusters") +
+     theme(legend.position = "bottom") +
+     scale_colour_continuous(name  = "Predicted clusters") +
+     guides(colour = guide_legend(override.aes = list(shape = 15)))
+  }
+   return(plotcvrs)
+}
 
 #' @title Print an object of class "rapids".
 #' @param x An object of class "rapids" 
@@ -74,30 +137,10 @@ cvrs.plot = function(cvrs, sens.pred)
 
 print.rapids=function (x,...)
 {
-
-   if (with(x, exists('psens'))) { #Simulated data
-      if (length(x$estimate.rr) == 1) {	   
-         sens.print = "Sensitivity of identifying the sensitive group: "
-         spec.print = "Specificity of identifying the sensitive group: "
-         rr.print = "Response rate in the sensitive group on the treatment arm: "
-      } else {
-         sens.print = "Mean sensitivity of identifying the sensitive group: "
-         spec.print = "Mean specificity of identifying the sensitive group: "
-	 rr.print = "Mean response rate in the sensitive group on the treatment arm: "
-      }
-      toprint = paste ("\nPower for the overall test: ", round(x$pwr.overall, 3),
-          "\nPower for the sensitive group: ", round(x$pwr.group, 3),
-          "\nPower for adaptive design: ", round(x$pwr.adaptive,3),
-          "\n", sens.print, round(mean(x$psens), 3),
-          "\n", spec.print, round(mean(x$pspec), 3), 
-	  "\n", rr.print, round(mean(x$estimate.rr, na.rm = T), 3), "\n", sep = "")
-   } else { #Real data
-      toprint = paste("\nP-value for the overall test: ", x$pval.overall,
-          "\nP-value for the sensitive group test: ", x$pval.group,
-	  "\nResponse rate in the sensitive group on the treatment arm: ", round (x$estimate.rr, 3), "\n", sep = "")
-   }
+   toprint = switch(as.character(with(x, exists('cvrs2'))), "TRUE" = print.2outcomes(x, ...), "FALSE" = print.1outcome(x, ...)) 
    cat(toprint)
 }
+
 
 #' @title Plot risk scores, sensitivity and specificity from a "rapids" object.
 #' @param x An object of class "rapids" 
@@ -126,73 +169,13 @@ print.rapids=function (x,...)
 #' @importFrom "graphics" "plot" "boxplot" "legend"
 #' @importFrom "pROC" "roc"
 
-plot.rapids = function(x, ...)  
+plot.rapids=function (x,...)
 {
-   x$sens.pred = as.matrix(x$sens.pred)
-   x$sens.pred = apply(x$sens.pred, 2, as.numeric)
-   x$sens.pred = as.matrix(x$sens.pred)
-   N = nrow(x$sens.pred)
-   runs = ncol(x$sens.pred)
- 
-
-   if (with(x, exists('cvrs')) & with(x, exists('psens'))) { #CVRS, sim.data 
-       x$cvrs = as.matrix(x$cvrs)
-       if (runs > 1) {
-          par(mfrow = c(2, 2))
-       } else {
-	  par(mfrow = c(2, 1))
-       }
-   } else if (with(x, exists('psens'))) { #CVASD, sim.data
-       if (length(x$psens) == 1) {
-          par(mfrow = c(1, 1))
-       } else { 
-          par(mfrow = c(1, 2))
-       }
-   } else if (with(x, exists('cvrs'))) { #CVRS, real data
-       x$cvrs = as.data.frame(x$cvrs)
-       par(mfrow = c(1, 1), mar = par('mar') + c(0,0,0,6)) 
-   } else { #CVASD, real data
-      print ("Nothing to plot")
-   }
-
-   ## Plot ROC curve for identifying the sensitve group for simulate dated
-   if (with(x, exists('psens'))) {
-      res = apply(x$sens.pred, 2, function(y)
-      { 
-         if (length(table(y)) == 2) {  
-            roc = roc (y, x$patients$sens.true, levels=base::levels(as.factor(x$patients$sens.true)), direction="<")
-         }
-      })
-      auc = res[[1]]$auc
-      par(pty = "s")
-      plot(res[[1]], main = "Sensitive group", ...)
-      if (runs == 1) {
-	 legend("bottomright", paste("AUC: ", signif(auc, 2), sep = ""), box.lwd = 0)
-      } else {
-         for (i in 2:runs) {
-            if (with(res[[i]], exists('auc'))) {
-               plot(res[[i]], add = TRUE)
-               auc = c(auc, res[[i]]$auc)
-            }
-         }
-         legend("bottomright", paste("Mean AUC: ", signif(mean(auc), 2), sep = ""), box.lwd = 0)
-         boxplot(x$psens, x$pspec, auc, names = c("Sensitivity", "Specificity", "AUC"), ylim = c(0,1), boxwex = 0.8, las = 2, ylim = c(0,1), main = "Sensitive group", ...)
-      }
-   }
-
-   ## Plot CVRS
-   if (with(x, exists('cvrs'))) {   
-      cvrs.df = data.frame()
-      for (i in 1:ncol(x$cvrs)) {
-         cvrs.df = rbind(cvrs.df, data.frame(ids = seq(1:N), cvrs = x$cvrs[,i], sens.pred = as.numeric(x$sens.pred[,i]), run = i))
-      }
-      plot(cvrs.df$ids, cvrs.df$cvrs, col = x$sens.pred + 1, xlab = "Patients", ylab = "CVRS", main = "CVRS", ...)
-      
-      legend(par('usr')[2], par('usr')[4], bty='n', xpd=NA, c("Non-sensitive", "Sensitive"), pch=c(1), title="Patients", col = c(1,2))   
-   }
+   switch(as.character(with(x, exists('cvrs2'))), "TRUE" = plot.2outcomes(x, ...), "FALSE" = plot.1outcome(x, ...))
 }
 
-#' @title  Perform permutation test for the real data.
+
+#' @title  Perform permutation test for the real data (1 outcome)
 #' @description
 #' For each permutation run, a test statistic for the interaction effect between the treatment and the predicted sensitivity status is computed.
 #' A permutation p-value is computed as the proportion of simulations where the test statistic is larger than the test statistic for the original data.
@@ -276,3 +259,159 @@ permutation.test <- function(realdata, res, method, reps)
 
      return(list(stat.group = stat.group, treat = realdata$patients$treat, sens.pred = sens$sens.pred))
   }
+
+############################
+### Auxiliary functions  ###
+############################
+
+## print.1outcome
+
+print.1outcome=function (x, ...)
+{
+   if (with(x, exists('psens'))) { #Simulated data
+      if (length(x$estimate.rr) == 1) {
+         sens.print = "Sensitivity of identifying the sensitive group: "
+         spec.print = "Specificity of identifying the sensitive group: "
+         rr.print = "Response rate in the sensitive group on the treatment arm: "
+      } else {
+         sens.print = "Mean sensitivity of identifying the sensitive group: "
+         spec.print = "Mean specificity of identifying the sensitive group: "
+         rr.print = "Mean response rate in the sensitive group on the treatment arm: "
+      }
+      toprint = paste ("\nPower for the overall test: ", round(x$pwr.overall, 3),
+          "\nPower for the sensitive group: ", round(x$pwr.group, 3),
+          "\nPower for adaptive design: ", round(x$pwr.adaptive,3),
+          "\n", sens.print, round(mean(x$psens), 3),
+          "\n", spec.print, round(mean(x$pspec), 3),
+          "\n", rr.print, round(mean(x$estimate.rr, na.rm = T), 3),"\n", sep = "")
+   } else { #Real data
+      toprint = paste("\nP-value for the overall test: ", x$pval.overall,
+          "\nP-value for the sensitive group test: ", x$pval.group,
+          "\nResponse rate in the sensitive group on the treatment arm: ", round (x$estimate.rr, 3), "\n", sep = "")
+   }
+   return(toprint)
+} # end print.1outcome
+
+
+## print.2outcomes
+
+print.2outcomes=function (x, ...)
+{
+   if (with(x, exists('psens'))) { #Simulated data
+      if (ncol(x$estimate.rr) == 1) {
+         sens.print = "\nSensitivity of identifying the sensitive group: "
+         spec.print = "\nSpecificity of identifying the sensitive group: "
+         rr.print = "\nResponse rate in the sensitive group on the treatment arm: "
+         rr2.print = "\nResponse2 rate in the sensitive group on the treatment arm: "
+      } else {
+         sens.print = "\nMean sensitivity of identifying the sensitive group: "
+         spec.print = "\nMean specificity of identifying the sensitive group: "
+         rr.print = "\nMean response rate in the sensitive group on the treatment arm: "
+         rr2.print = "\nMean response2 rate in the sensitive group on the treatment arm: "
+      }
+      toprint = c(paste("\nPower for the overall test (response): ", round(x$pwr.resp.overall, 3)), 
+		   paste(c("\nPower for the sensitive group  (response): ", round(x$pwr.resp.group, 3)), collapse = " "),
+                   paste (c("\nPower for adaptive design (response): ", round(x$pwr.resp.adaptive,3)), collapse = " "), 
+                   paste("\nPower for the overall test (response2): ", round(x$pwr.resp2.overall, 3)),
+		   paste(c("\nPower for the sensitive group  (response2): ", round(x$pwr.resp2.group, 3)), collapse = " "),
+                   paste (c("\nPower for adaptive design (response2): ", round(x$pwr.resp2.adaptive,3)), collapse = " "), 
+	           paste(c(sens.print, round(rowMeans(x$psens), 3)), collapse = " "),
+		   paste(c(spec.print, round(rowMeans(x$pspec), 3)), collapse = " "),
+		   paste(c(rr.print, round(rowMeans(x$estimate.rr, na.rm = T), 3)), collapse = " "),
+		   paste(c(rr2.print, round(rowMeans(x$estimate.rr2, na.rm = T), 3)), collapse = " "),
+	           "\n")
+   } else { #Real data
+      toprint = c(paste("\nP-value for the overall test (response): ", round(x$pval.resp,3)),
+		  paste(c("\nP-value for the sensitive group test (response): ", round(x$pval.resp.group, 3)), collapse = " "),
+		  paste(c("\nResponse1 rate in the sensitive group on the treatment arm:  ", round(x$estimate.rr, 3)), collapse = " "),
+		  paste("\nP-value for the overall test (response2): ", round(x$pval.resp2,3)),
+                  paste(c("\nP-value for the sensitive group test (response2): ", round(x$pval.resp2.group, 3)), collapse = " "),
+                  paste(c("\nResponse2 rate in the sensitive group on the treatment arm:  ", round(x$estimate.rr2, 3)), collapse = " "),
+		  "\n")
+   }
+   return(toprint)
+
+} #end print.2outcomes
+
+
+## plot.1outcome
+
+plot.1outcome = function(x, ...)
+{
+   x$sens.pred = as.matrix(x$sens.pred)
+   x$sens.pred = apply(x$sens.pred, 2, as.numeric)
+   x$sens.pred = as.matrix(x$sens.pred)
+   N = nrow(x$sens.pred)
+   runs = ncol(x$sens.pred)
+
+   if (with(x, exists('cvrs')) & with(x, exists('psens'))) { #CVRS, sim.data 
+       x$cvrs = as.matrix(x$cvrs)
+       if (runs > 1) {
+          par(mfrow = c(2, 2))
+       } else {
+          par(mfrow = c(2, 1))
+       }
+   } else if (with(x, exists('psens'))) { #CVASD, sim.data
+       if (length(x$psens) == 1) {
+          par(mfrow = c(1, 1))
+       } else {
+          par(mfrow = c(1, 2))
+       }
+   } else if (with(x, exists('cvrs'))) { #CVRS, real data
+       x$cvrs = as.data.frame(x$cvrs)
+       par(mfrow = c(1, 1), mar = par('mar') + c(0,0,0,6))
+   } else { #CVASD, real data
+      print ("Nothing to plot")
+   }
+
+   ## Plot ROC curve for identifying the sensitve group for simulated data
+   if (with(x, exists('psens'))) {
+      res = apply(x$sens.pred, 2, function(y)
+      {
+         if (length(table(y)) == 2) {
+            roc = roc (y, x$patients$sens.true, levels=base::levels(as.factor(x$patients$sens.true)), direction="<")
+         }
+      })
+      auc = res[[1]]$auc
+      par(pty = "s")
+      plot(res[[1]], main = "Sensitive group", ...)
+      if (runs == 1) {
+         legend("bottomright", paste("AUC: ", signif(auc, 2), sep = ""), box.lwd = 0)
+      } else {
+         for (i in 2:runs) {
+            if (with(res[[i]], exists('auc'))) {
+               plot(res[[i]], add = TRUE)
+               auc = c(auc, res[[i]]$auc)
+            }
+         }
+         legend("bottomright", paste("Mean AUC: ", signif(mean(auc), 2), sep = ""), box.lwd = 0)
+         boxplot(x$psens, x$pspec, auc, names = c("Sensitivity", "Specificity", "AUC"), ylim = c(0,1), boxwex = 0.8, las = 2, ylim = c(0,1), main = "Sensitive group", ...)
+      }
+   }
+
+   ## Plot CVRS
+   if (with(x, exists('cvrs'))) {
+      cvrs.df = data.frame()
+      for (i in 1:ncol(x$cvrs)) {
+         cvrs.df = rbind(cvrs.df, data.frame(ids = seq(1:N), cvrs = x$cvrs[,i], sens.pred = as.numeric(x$sens.pred[,i]), run = i))
+      }
+      plot(cvrs.df$ids, cvrs.df$cvrs, col = x$sens.pred + 1, xlab = "Patients", ylab = "CVRS", main = "CVRS", ...)
+
+      legend(par('usr')[2], par('usr')[4], bty='n', xpd=NA, c("Non-sensitive", "Sensitive"), pch=c(1), title="Patients", col = c(1,2))
+   }
+}
+
+### plot.2outcomes
+plot.2outcomes = function(x, ...)
+{
+   ## Plot CVRS
+   sim = FALSE
+   if (with(x, exists('psens'))) {
+        sim = TRUE
+   }
+   plotcvrs = cvrs2.plot(x$cvrs, x$cvrs2, x$cluster.pred, x$patients$cluster.true, sim)
+   ggsave ("cvrs2.pdf", plotcvrs)
+   plotcvrs
+
+}
+
