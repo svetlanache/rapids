@@ -4,8 +4,7 @@
 \name{realdata}
 \alias{realdata}
 \title{Hypothetical real data}
-\format{
-A list of 2 data frames with patients and covariates data, and a vector of responses.
+\format{A list of 2 data frames with patients and covariates data, and a vector of responses.
 
         patients: A data frame with one row per patient and the following columns: 
         FID (family ID), IID (individual ID), treat (1 for the treatment arm and 0 for the control arm).
@@ -14,8 +13,7 @@ A list of 2 data frames with patients and covariates data, and a vector of respo
 
         response: A vector of hypothetical true binary responses. 
 
-        The order of the patients in the data frames and the vector of responses should match.
-}
+        The order of the patients in the data frames and the vector of responses should match.}
 \usage{
 data(realdata)
 }
