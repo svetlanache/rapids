@@ -3,7 +3,6 @@
 \docType{package}
 \name{rapids}
 \alias{rapids}
-\alias{rapids-package}
 \title{rapids: A package for cross-validated adaptive signature design (CVASD) and
         cross-validation risk scores design (CVRS).}
 \description{

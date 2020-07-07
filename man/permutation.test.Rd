@@ -2,7 +2,7 @@
 % Please edit documentation in R/extras.R
 \name{permutation.test}
 \alias{permutation.test}
-\title{Perform permutation test for the real data.}
+\title{Perform permutation test for the real data (1 outcome)}
 \usage{
 permutation.test(realdata, res, method, reps)
 }

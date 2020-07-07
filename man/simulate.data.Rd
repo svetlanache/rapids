@@ -4,10 +4,26 @@
 \alias{simulate.data}
 \title{Simulate data for the cross-validated adaptive signature design/cross-validated risc scores design.}
 \usage{
-\method{simulate}{data}(N = 1000, L = 100, K = 10, rho1 = 0,
-  rho2 = 0, rho0 = 0, mu1 = 1, mu2 = 0, mu0 = 0, sigma1 = 0.5,
-  sigma2 = 0.1, sigma0 = 0.5, perc.sp = 0.1, rr.nsp.treat = 0.25,
-  rr.con = 0.25, rr.sp.treat = 0.6, runs = 1, seed = 123)
+\method{simulate}{data}(
+  N = 1000,
+  L = 100,
+  K = 10,
+  rho1 = 0,
+  rho2 = 0,
+  rho0 = 0,
+  mu1 = 1,
+  mu2 = 0,
+  mu0 = 0,
+  sigma1 = 0.5,
+  sigma2 = 0.1,
+  sigma0 = 0.5,
+  perc.sp = 0.1,
+  rr.nsp.treat = 0.25,
+  rr.con = 0.25,
+  rr.sp.treat = 0.6,
+  runs = 1,
+  seed = 123
+)
 }
 \arguments{
 \item{N}{Number of patients.}

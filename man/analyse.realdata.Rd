@@ -5,9 +5,17 @@
 \title{Compute p-value for the overall treatment effect and for the 
 interaction effect between the treatment and the predicted sensitivity status, for real data.}
 \usage{
-analyse.realdata(datalist, sig = 0.05, group.prop.sig = 0.2,
-  method = c("cvrs", "cvasd"), eta = NULL, R = NULL, G = NULL,
-  seed = NULL, plotrs = F)
+analyse.realdata(
+  datalist,
+  sig = 0.05,
+  group.prop.sig = 0.2,
+  method = c("cvrs", "cvasd"),
+  eta = NULL,
+  R = NULL,
+  G = NULL,
+  seed = NULL,
+  plotrs = F
+)
 }
 \arguments{
 \item{datalist}{A list made up of 3 data frames (patients and covar) and a vector of binary responses, for real data (see \code{realdata} object): patients (a data frame with patients information), covar (a data frame with the covariates), response (a vector of responses).}

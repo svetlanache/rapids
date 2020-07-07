@@ -4,9 +4,17 @@
 \alias{analyse.simdata}
 \title{Compute the power for the cross-validate adaptive signature design/cross-validated risk scores design for simulated data.}
 \usage{
-analyse.simdata(datalist, sig = 0.05, group.prop.sig = 0.2,
-  method = c("cvrs", "cvasd"), eta = NULL, R = NULL, G = NULL,
-  seed = NULL, plotrs = F)
+analyse.simdata(
+  datalist,
+  sig = 0.05,
+  group.prop.sig = 0.2,
+  method = c("cvrs", "cvasd"),
+  eta = NULL,
+  R = NULL,
+  G = NULL,
+  seed = NULL,
+  plotrs = F
+)
 }
 \arguments{
 \item{datalist}{A list of 3 data frames that corresponds to the output of the \code{simulate.data} function (see \code{simdata} object): patients (a data frame with patients inormation), covar (a data frame with the covariates), response (a data frame of simulated responses).}
