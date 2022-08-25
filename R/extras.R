@@ -25,7 +25,7 @@
 #' @export
 #' @importFrom "ggplot2" "ggplot" "aes" "geom_point" "labs" "theme" "scale_colour_continuous" "guides" "guide_legend" "ggsave"
 
-cvrs.plot = function(cvrs, sens.pred) 
+cvrs.plot = function(cvrs, sens.pred)
 {
    cvrs = as.data.frame(cvrs)
    sens.pred = as.data.frame(sens.pred)
@@ -42,7 +42,7 @@ cvrs.plot = function(cvrs, sens.pred)
                             breaks=c(0, 1),
                             labels=c("Non-sensitive", "Sensitive")) +
    guides(colour = guide_legend(override.aes = list(shape = 15)))
-   
+
    ggsave("CVRSplot.png")
 }
 
@@ -71,7 +71,7 @@ cvrs.plot = function(cvrs, sens.pred)
 #' @seealso
 #' \code{\link{analyse.simdata2}} and \code{\link{analyse.realdata2}} functions; \code{\link{plot}} and \code{\link{print}} methods.
 #' @export
-#' @importFrom "ggplot2" "ggplot" "aes" "geom_point" "labs" "theme" "scale_colour_continuous" "guides" "guide_legend" 
+#' @importFrom "ggplot2" "ggplot" "aes" "geom_point" "labs" "theme" "scale_colour_continuous" "guides" "guide_legend"
 #' @importFrom "gridExtra" "grid.arrange"
 
 cvrs2.plot = function(cvrs, cvrs2, cluster.pred, cluster.true = NULL, sim = FALSE)
@@ -113,7 +113,7 @@ cvrs2.plot = function(cvrs, cvrs2, cluster.pred, cluster.true = NULL, sim = FALS
 }
 
 #' @title Print an object of class "rapids".
-#' @param x An object of class "rapids" 
+#' @param x An object of class "rapids"
 #' @details For simulated data, the following operating characteristics are printed: (i) the power for the overall test; (ii) the power for the sensitive group test; (iii) the power for the adaptive design; (iv) mean sensitivity and specificity of identifying the sensitive group; (v) mean response rate in the sensitive group on the treatment arm. For real data, the following operating characteristics are printed: (i) p-value for the overall test; (ii) p-value for the  sensitivity group test; (iii) estimated response rate in the sensitive group on the treatment arm.
 #' @author Svetlana Cherlin, James Wason
 #' @examples
@@ -137,14 +137,14 @@ cvrs2.plot = function(cvrs, cvrs2, cluster.pred, cluster.true = NULL, sim = FALS
 
 print.rapids=function (x,...)
 {
-   toprint = switch(as.character(with(x, exists('cvrs2'))), "TRUE" = print.2outcomes(x, ...), "FALSE" = print.1outcome(x, ...)) 
+   toprint = switch(as.character(with(x, exists('cvrs2'))), "TRUE" = print.2outcomes(x, ...), "FALSE" = print.1outcome(x, ...))
    cat(toprint)
 }
 
 
 #' @title Plot risk scores, sensitivity and specificity from a "rapids" object.
-#' @param x An object of class "rapids" 
-#' @param   ... Other parameters to plot 
+#' @param x An object of class "rapids"
+#' @param   ... Other parameters to plot
 #' @details For simulated data, the following is plotted: ROC plots for predicting the sensitivity status, boxplots for the AUC, sensitivity and specificity, risk scores for the "cvrs" method (the risk scores from all of the simulation runs are shown on the same plot).
 #' @details For real data, risk scores are plotted for the "cvrs" method. For real data  analysed with the "cvasd" method, a message "nothing to plot" is printed.
 #' @author Svetlana Cherlin, James Wason
@@ -201,14 +201,14 @@ plot.rapids=function (x,...)
 #' plotrs = T
 #' eta = NULL
 #' R = NULL
-#' G = NULL 
+#' G = NULL
 #' realres.cvrs = analyse.realdata(realdata, sig, group.prop.sig, method, eta, R, G, seed, plotrs)
 #' #Permutation test
 #' reps = 10
 #' res.perm = permutation.test(realdata, realres.cvrs, method, reps)
 #' @seealso
 #' \code{\link{analyse.realdata}} function.
-#' @export 
+#' @export
 
 permutation.test <- function(realdata, res, method, reps)
 {
@@ -233,12 +233,12 @@ permutation.test <- function(realdata, res, method, reps)
              ppval.group = as.numeric(ppval.group))
 
   return (res.perm)
-}  
+}
 
   perm = function(realdata, res, method, treat0) {
 
      ## permute treatment labels
-     realdata$patients$treat = sample(treat0, replace=FALSE) 
+     realdata$patients$treat = sample(treat0, replace=FALSE)
 
      ## get sensitive group
      sens = switch (method, cvasd = sens.cvasd(realdata$patients, realdata$covar, realdata$response, res$eta, res$R, res$G, NULL),
@@ -253,7 +253,7 @@ permutation.test <- function(realdata, res, method, reps)
      if (is.na(theta[names(theta) == "sens$sens.predTRUE:realdata$patients$treat"])) { #no sensitive group identified
         stat.group = -999
      } else {
-        sum.theta = summary(mod)$coeff 
+        sum.theta = summary(mod)$coeff
         stat.group = sum.theta[names(theta) == "sens$sens.predTRUE:realdata$patients$treat", colnames(sum.theta) == "z value"]
      }
 
@@ -268,27 +268,34 @@ permutation.test <- function(realdata, res, method, reps)
 
 print.1outcome=function (x, ...)
 {
-   if (with(x, exists('psens'))) { #Simulated data
-      if (length(x$estimate.rr) == 1) {
-         sens.print = "Sensitivity of identifying the sensitive group: "
-         spec.print = "Specificity of identifying the sensitive group: "
-         rr.print = "Response rate in the sensitive group on the treatment arm: "
-      } else {
-         sens.print = "Mean sensitivity of identifying the sensitive group: "
-         spec.print = "Mean specificity of identifying the sensitive group: "
-         rr.print = "Mean response rate in the sensitive group on the treatment arm: "
-      }
-      toprint = paste ("\nPower for the overall test: ", round(x$pwr.overall, 3),
-          "\nPower for the sensitive group: ", round(x$pwr.group, 3),
-          "\nPower for adaptive design: ", round(x$pwr.adaptive,3),
-          "\n", sens.print, round(mean(x$psens), 3),
-          "\n", spec.print, round(mean(x$pspec), 3),
-          "\n", rr.print, round(mean(x$estimate.rr, na.rm = T), 3),"\n", sep = "")
-   } else { #Real data
-      toprint = paste("\nP-value for the overall test: ", x$pval.overall,
-          "\nP-value for the sensitive group test: ", x$pval.group,
-          "\nResponse rate in the sensitive group on the treatment arm: ", round (x$estimate.rr, 3), "\n", sep = "")
-   }
+  if (!is.null(x$msg)) {
+    toprint = x$msg
+  } else {
+    if (with(x, exists('psens'))) { #Simulated data
+        if (length(x$estimate.rr) == 1) {
+           sens.print = "Sensitivity of identifying the sensitive group: "
+           spec.print = "Specificity of identifying the sensitive group: "
+           rr.print = "Response rate in the sensitive group on the treatment arm: "
+        } else {
+           sens.print = "Mean sensitivity of identifying the sensitive group: "
+           spec.print = "Mean specificity of identifying the sensitive group: "
+           rr.print = "Mean response rate in the sensitive group on the treatment arm: "
+
+        }
+         toprint = paste ("\nPower for the overall test: ", signif(x$pwr.overall, 3),
+          "\nPower for the sensitive group: ", signif(x$pwr.group, 3),
+          "\nPower for adaptive design: ", signif(x$pwr.adaptive,3),
+          "\n", sens.print, signif(mean(x$psens), 3),
+          "\n", spec.print, signif(mean(x$pspec), 3),
+          "\n", rr.print, signif(mean(x$estimate.rr, na.rm = T), 3),"\n", sep = "")
+    } else { #Real data
+
+            toprint = paste("\nP-value for the overall test: ", signif(x$pval.overall, 3),
+            "\nP-value for the sensitive group test: ", signif(x$pval.group, 3),
+            "\nResponse rate in the sensitive group on the treatment arm: ", signif (x$estimate.rr, 3), "\n", sep = "")
+
+    }
+  }
    return(toprint)
 } # end print.1outcome
 
@@ -309,24 +316,24 @@ print.2outcomes=function (x, ...)
          rr.print = "\nMean response rate in the sensitive group on the treatment arm: "
          rr2.print = "\nMean response2 rate in the sensitive group on the treatment arm: "
       }
-      toprint = c(paste("\nPower for the overall test (response): ", round(x$pwr.resp.overall, 3)), 
-		   paste(c("\nPower for the sensitive group  (response): ", round(x$pwr.resp.group, 3)), collapse = " "),
-                   paste (c("\nPower for adaptive design (response): ", round(x$pwr.resp.adaptive,3)), collapse = " "), 
-                   paste("\nPower for the overall test (response2): ", round(x$pwr.resp2.overall, 3)),
-		   paste(c("\nPower for the sensitive group  (response2): ", round(x$pwr.resp2.group, 3)), collapse = " "),
-                   paste (c("\nPower for adaptive design (response2): ", round(x$pwr.resp2.adaptive,3)), collapse = " "), 
-	           paste(c(sens.print, round(rowMeans(x$psens), 3)), collapse = " "),
-		   paste(c(spec.print, round(rowMeans(x$pspec), 3)), collapse = " "),
-		   paste(c(rr.print, round(rowMeans(x$estimate.rr, na.rm = T), 3)), collapse = " "),
-		   paste(c(rr2.print, round(rowMeans(x$estimate.rr2, na.rm = T), 3)), collapse = " "),
+      toprint = c(paste("\nPower for the overall test (response): ", signif(x$pwr.resp.overall, 3)),
+		   paste(c("\nPower for the sensitive group  (response): ", signif(x$pwr.resp.group, 3)), collapse = " "),
+                   paste (c("\nPower for adaptive design (response): ", signif(x$pwr.resp.adaptive,3)), collapse = " "),
+                   paste("\nPower for the overall test (response2): ", signif(x$pwr.resp2.overall, 3)),
+		   paste(c("\nPower for the sensitive group  (response2): ", signif(x$pwr.resp2.group, 3)), collapse = " "),
+                   paste (c("\nPower for adaptive design (response2): ", signif(x$pwr.resp2.adaptive,3)), collapse = " "),
+	           paste(c(sens.print, signif(rowMeans(x$psens), 3)), collapse = " "),
+		   paste(c(spec.print, signif(rowMeans(x$pspec), 3)), collapse = " "),
+		   paste(c(rr.print, signif(rowMeans(x$estimate.rr, na.rm = T), 3)), collapse = " "),
+		   paste(c(rr2.print, signif(rowMeans(x$estimate.rr2, na.rm = T), 3)), collapse = " "),
 	           "\n")
    } else { #Real data
-      toprint = c(paste("\nP-value for the overall test (response): ", round(x$pval.resp,3)),
-		  paste(c("\nP-value for the sensitive group test (response): ", round(x$pval.resp.group, 3)), collapse = " "),
-		  paste(c("\nResponse1 rate in the sensitive group on the treatment arm:  ", round(x$estimate.rr, 3)), collapse = " "),
-		  paste("\nP-value for the overall test (response2): ", round(x$pval.resp2,3)),
-                  paste(c("\nP-value for the sensitive group test (response2): ", round(x$pval.resp2.group, 3)), collapse = " "),
-                  paste(c("\nResponse2 rate in the sensitive group on the treatment arm:  ", round(x$estimate.rr2, 3)), collapse = " "),
+      toprint = c(paste("\nP-value for the overall test (response): ", signif(x$pval.resp,3)),
+		  paste(c("\nP-value for the sensitive group test (response): ", signif(x$pval.resp.group, 3)), collapse = " "),
+		  paste(c("\nResponse1 rate in the sensitive group on the treatment arm:  ", signif(x$estimate.rr, 3)), collapse = " "),
+		  paste("\nP-value for the overall test (response2): ", signif(x$pval.resp2,3)),
+                  paste(c("\nP-value for the sensitive group test (response2): ", signif(x$pval.resp2.group, 3)), collapse = " "),
+                  paste(c("\nResponse2 rate in the sensitive group on the treatment arm:  ", signif(x$estimate.rr2, 3)), collapse = " "),
 		  "\n")
    }
    return(toprint)
@@ -344,7 +351,7 @@ plot.1outcome = function(x, ...)
    N = nrow(x$sens.pred)
    runs = ncol(x$sens.pred)
 
-   if (with(x, exists('cvrs')) & with(x, exists('psens'))) { #CVRS, sim.data 
+   if (with(x, exists('cvrs')) & with(x, exists('psens'))) { #CVRS, sim.data
        x$cvrs = as.matrix(x$cvrs)
        if (runs > 1) {
           par(mfrow = c(2, 2))

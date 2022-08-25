@@ -1,14 +1,14 @@
-#' @title 
-#' Compute p-value for the overall treatment effect and for the 
+#' @title
+#' Compute p-value for the overall treatment effect and for the
 #' interaction effect between the treatment and the predicted sensitivity status, for real data.
 #'
 #' @description
 #' The sensitive group is identified according to the input method ("cvasd" for the cross-validated adaptive signature design or "cvrs" for the cross-validated risk scores design),
-#' significance level of the test for the sensitive group is 
-#' determined by the input proportion of the significance  
+#' significance level of the test for the sensitive group is
+#' determined by the input proportion of the significance
 #' level for the sensitive group (group.prop.sig) out of the overall significance (sig).
 #' The p-value for the overall treatment effect is computed using logistic regression with treatment allocation as a predictor.
-#' The p-value for the interaction effect between the treatment and the predicted sensitivity status is computed using logistic regression with the treatment effect, the effect for the predicted sensitivity status and the interaction effect. 
+#' The p-value for the interaction effect between the treatment and the predicted sensitivity status is computed using logistic regression with the treatment effect, the effect for the predicted sensitivity status and the interaction effect.
 #'
 #' @param datalist A list made up of 3 data frames (patients and covar) and a vector of binary responses, for real data (see \code{realdata} object): patients (a data frame with patients information), covar (a data frame with the covariates), response (a vector of responses).
 #' @param  sig An overall significance level for the adaptive design.
@@ -55,19 +55,22 @@
 #' realres.cvasd = analyse.realdata(realdata, sig, group.prop.sig, method, eta, R, G, seed, plotrs)
 #' @seealso
 #' \code{\link{analyse.simdata}}, \code{\link{simulate.data}} and \code{\link{cvrs.plot}} functions; \code{\link{print}} and \code{\link{plot}} methods.
-#' @export 
+#' @export
 
 
-analyse.realdata = function(datalist, sig = 0.05, group.prop.sig = 0.2, 
-                            method = c("cvrs", "cvasd"), eta = NULL, R = NULL, G = NULL, 
+analyse.realdata = function(datalist, sig = 0.05, group.prop.sig = 0.2,
+                            method = c("cvrs", "cvasd"), eta = NULL, R = NULL, G = NULL,
                             seed = NULL, plotrs = F)
-                           
-{  
+
+{
 
    patients = datalist$patients
    covar = datalist$covar
    response = datalist$response
-   
+   stat.group = NA
+   pval.group = NA
+   msg = NULL
+
    if (is.null(dim(patients))) {
       stop ("Patients data is missing.")
    } else if (ncol(patients) < 3 ) {
@@ -75,10 +78,10 @@ analyse.realdata = function(datalist, sig = 0.05, group.prop.sig = 0.2,
    }
    if (is.null(length(response))) {
       stop ("Response data is missing.")
-   } 
+   }
    if (is.null(dim(covar))) {
       stop ("Covariate data is missing.")
-   } 
+   }
    if (!((length(response) == nrow(patients)) & (nrow(patients) == nrow(covar)))) {
       stop ("Patients data, covariate data and response data dimensions do not match.")
    }
@@ -87,11 +90,11 @@ analyse.realdata = function(datalist, sig = 0.05, group.prop.sig = 0.2,
    }
    if (!(is.numeric(group.prop.sig) & (length(group.prop.sig) == 1) & (group.prop.sig > 0) & (group.prop.sig < 1))) {
       stop ("Proportion of significance level for the sensitive group shoud be between 0 and 1.")
-   }   
+   }
 
    method = match.arg(method)
    sig.group = sig*group.prop.sig
-   sig.overall = sig - sig.group   
+   sig.overall = sig - sig.group
 
    ## P-value for the overall arm comparison
    mod = glm(response ~ patients$treat, family = "binomial")
@@ -103,22 +106,26 @@ analyse.realdata = function(datalist, sig = 0.05, group.prop.sig = 0.2,
       # Find sensitive group according to the input method
 
    sens = switch (method, cvasd = sens.cvasd(patients, covar, response, eta, R, G, seed),
-                          cvrs = sens.cvrs(patients, covar, response, seed))                                      
+                          cvrs = sens.cvrs(patients, covar, response, seed))
    resp.group = response[sens$sens.pred == 1] #response for sensitive group
    treat.group = patients$treat[sens$sens.pred == 1] #treatment allocation for sensitive group
-         
+
    mod = glm(response ~ sens$sens.pred + patients$treat + sens$sens.pred:patients$treat, family = "binomial")
    theta = mod$coeff
    sum.theta = summary(mod)$coeff
-   stat.group = sum.theta[names(theta) == "sens$sens.predTRUE:patients$treat", colnames(sum.theta) == "z value"]
-   pval.group = sum.theta[names(theta) == "sens$sens.predTRUE:patients$treat", colnames(sum.theta) == "Pr(>|z|)"]
+   if(nrow(sum.theta) > 2) {
+      stat.group = sum.theta[names(theta) == "sens$sens.predTRUE:patients$treat", colnames(sum.theta) == "z value"]
+      pval.group = sum.theta[names(theta) == "sens$sens.predTRUE:patients$treat", colnames(sum.theta) == "Pr(>|z|)"]
+   }else {
+      msg = "Sensitive group is not found"
+   }
 
    resp.treat =  sum(resp.group & treat.group)   #number of responders in the treatment arm
    nonresp.treat =  sum(!resp.group & treat.group) #number of non-responders in the treatment arm
    estimate.rr = resp.treat/(resp.treat + nonresp.treat) #estimated response rate in the sensitive group in the treatment arm
-   
-   output = switch(method, cvasd = list(patients = patients, pval.overall = pval.overall, stat.group = stat.group, pval.group = pval.group, estimate.rr = estimate.rr, sens.pred = sens$sens.pred, eta = eta, R = R, G = G),
-            cvrs = list(patients = patients, pval.overall = pval.overall, stat.group = stat.group, pval.group = pval.group, estimate.rr = estimate.rr, sens.pred = sens$sens.pred, cvrs = sens$cvrs)) 
+
+   output = switch(method, cvasd = list(patients = patients, pval.overall = pval.overall, stat.group = stat.group, pval.group = pval.group, estimate.rr = estimate.rr, sens.pred = sens$sens.pred, eta = eta, R = R, G = G, msg = msg),
+            cvrs = list(patients = patients, pval.overall = pval.overall, stat.group = stat.group, pval.group = pval.group, estimate.rr = estimate.rr, sens.pred = sens$sens.pred, cvrs = sens$cvrs, msg = msg))
    if (method == "cvrs" & plotrs) cvrs.plot(sens$cvrs, sens$sens.pred)
 
    class(output) = "rapids"
@@ -127,16 +134,16 @@ analyse.realdata = function(datalist, sig = 0.05, group.prop.sig = 0.2,
 }
 
 
-#' @title 
-#' Compute p-value for the overall treatment effect and for the 
+#' @title
+#' Compute p-value for the overall treatment effect and for the
 #' interaction effect between the treatment and the predicted sensitivity status, for real data.
 #'
 #' @description
-#' significance level of the test for the sensitive group is 
-#' determined by the input proportion of the significance  
+#' significance level of the test for the sensitive group is
+#' determined by the input proportion of the significance
 #' level for the sensitive group (group.prop.sig) out of the overall significance (sig).
 #' The p-value for the overall treatment effect is computed using bivariate logistic regression with treatment allocation as a predictor.
-#' The p-value for the interaction effect between the treatment and the predicted sensitivity status is computed using bivariate logistic regression with the treatment effect, the effect for the predicted sensitivity status and the interaction effect. 
+#' The p-value for the interaction effect between the treatment and the predicted sensitivity status is computed using bivariate logistic regression with the treatment effect, the effect for the predicted sensitivity status and the interaction effect.
 #'
 #' @param datalist A list made up of 3 data frames (patients and covar) and a vector of binary responses, for real data (see \code{realdata} object): patients (a data frame with patients information), covar (a data frame with the covariates), response (a vector of responses).
 #' @param  nclust Number of clusters
@@ -172,18 +179,18 @@ analyse.realdata = function(datalist, sig = 0.05, group.prop.sig = 0.2,
 #'
 #' @seealso
 #' \code{\link{analyse.simdata2}}, \code{\link{simulate.data2}} and \code{\link{cvrs.plot}} functions; \code{\link{print}} and \code{\link{plot}} methods.
-#' @export 
+#' @export
 #' @importFrom "ggplot2" "ggsave"
 
 
-analyse.realdata2 = function(datalist, nclust, sig = 0.05, group.prop.sig = 0.2, 
-                            seed = NULL, plotrs = F)                           
-{  
+analyse.realdata2 = function(datalist, nclust, sig = 0.05, group.prop.sig = 0.2,
+                            seed = NULL, plotrs = F)
+{
    patients = datalist$patients
    covar = datalist$covar
    response = datalist$response
    response2 = datalist$response2
-   
+
    if (is.null(dim(patients))) {
       stop ("Patients data is missing.")
    } else if (ncol(patients) < 3 ) {
@@ -191,13 +198,13 @@ analyse.realdata2 = function(datalist, nclust, sig = 0.05, group.prop.sig = 0.2,
    }
    if (is.null(length(response))) {
       stop ("Response data is missing.")
-   } 
+   }
    if (is.null(length(response2))) {
       stop ("Response2 data is missing.")
    }
    if (is.null(dim(covar))) {
       stop ("Covariate data is missing.")
-   } 
+   }
    if (!((length(response) == nrow(patients)) & (nrow(patients) == nrow(covar)))) {
       stop ("Patients data, covariate data and response data dimensions do not match.")
    }
@@ -206,14 +213,14 @@ analyse.realdata2 = function(datalist, nclust, sig = 0.05, group.prop.sig = 0.2,
    }
    if (!(is.numeric(group.prop.sig) & (length(group.prop.sig) == 1) & (group.prop.sig > 0) & (group.prop.sig < 1))) {
       stop ("Proportion of significance level for the sensitive group shoud be between 0 and 1.")
-   }   
+   }
 
    sig.group = sig*group.prop.sig
-   sig.overall = sig - sig.group   
+   sig.overall = sig - sig.group
 
    ## P-value for the overall arm comparison
    mod = tryCatch({vglm(cbind(response, response2) ~ patients$treat, binom2.or)}, error = function(e) e, warning = function(w) w)
-   if (is(mod, "error") | is(mod, "warning")) { 
+   if (is(mod, "error") | is(mod, "warning")) {
       pval.resp = 1
       pval.resp2 = 1
    } else if (is.na(logLik(mod))) {
