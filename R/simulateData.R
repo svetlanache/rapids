@@ -224,7 +224,7 @@ simulate.data <- function(N = 1000, L = 100, K=10,
 #' \code{\link{analyse.simdata2}} and \code{\link{cvrs2.plot}} functions; \code{\link{print}} and \code{\link{plot}} methods.
 #' @author Svetlana Cherlin, James Wason
 #' @importFrom "MASS" "mvrnorm"
-#' @export simulate.data
+#' @export simulate.data2
 
 simulate.data2 <- function(N = 1000, L = 100, 
                      K1 = 10, K2 = 10, Both = 3, 
