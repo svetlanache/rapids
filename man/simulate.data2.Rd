@@ -39,7 +39,7 @@
   rr.sp.treat = 0.8,
   rr2.nsp.treat = 0.25,
   rr2.con = 0.25,
-  rr2.rate.sp.treat = 0.8,
+  rr2.sp.treat = 0.8,
   runs = 1,
   seed = 123
 )
@@ -51,13 +51,19 @@
 
 \item{K2}{Number of sensitive covariates that influence the response2 only.}
 
+\item{Both}{Number of overlapping sensitive covariates (influence both the response and  response2).}
+
 \item{mu1, sigma1, rho1}{Mean, sd and correlation for sensitive covariates in sensitive patients.}
 
 \item{mu2, sigma2, rho2}{Correlation parameter for sensitive covariates in non-sensitive patients.}
 
 \item{mu0, sigma0, rho}{Correlation parameter for non-sensitive covariates in all patients.}
 
-\item{mu1.resp2, }{sigma1.resp2, rho1.resp2 Mean, sd and correlation for covariates that influence the response2}
+\item{mu1.resp2, sigma1.resp2, rho1.resp2}{Mean, sd and correlation for covariates that influence the response2}
+
+\item{mu1.both, sigma1.both, rho1.both}{Mean, sd and correlation for overlaping covariates in sensitive patients.}
+
+\item{mu2.both, sigma2.both, rho2.both}{Mean, sd and correlation for overlaping covariates in non-sensitive patients.}
 
 \item{perc.sp}{Percentage of patients with higher probability of response.}
 
@@ -67,19 +73,17 @@
 
 \item{rr.sp.treat}{Response rate on the treatment arm in resp.sensitive patients.}
 
+\item{rr2.nsp.treat}{Probability of response2 for the non-resp2.sensitive patients in the treatment arm}
+
 \item{rr2.con}{Probability of response2 for the control arm}
+
+\item{rr2.sp.treat}{Probability of response2 for the resp2.sensitive patients in the treatment arm}
 
 \item{runs}{Number of replicates to simulate.}
 
 \item{seed}{A seed for the random number generator.}
 
 \item{K}{Number of sensitive covariates that influence the response only.}
-
-\item{Ov}{Number of overlapping sensitive covariates (influence both the response and  response2).}
-
-\item{rr2.low}{Probability of response2 for the non-resp2.sensitive patients in the treatment arm}
-
-\item{rr2.high}{Probability of response2 for the resp2.sensitive patients in the treatment arm}
 }
 \value{
 A list of 4 data frames: patients, covar, response, response2
@@ -133,13 +137,12 @@ rho2.both = 0
 perc.sp = 0.1
 perc.sp2 = 0.1
 perc.sp.both = 0.1
-rr.nsp.treat = 0.25
 rr.con = 0.25
 rr.sp.treat = 0.8
 rr2.sp.treat = 0.8
+rr.nsp.treat = 0.25
 rr2.nsp.treat = 0.25
 rr2.con = 0.25
-rr2.rate.sp.treat = 0.8
 runs = 5
 seed = 123
 datalist2 = simulate.data2 (N , L , K1, K2, Both, rho1, rho2, rho0, mu1, mu2, mu0, sigma1, sigma2, sigma0, rho1.resp2, rho2.resp2, mu1.resp2, mu2.resp2, sigma1.resp2, sigma2.resp2,mu1.both, mu2.both, sigma1.both, sigma2.both, rho1.both, rho2.both, perc.sp, perc.sp2, perc.sp.both, rr.nsp.treat, rr.con, rr.sp.treat, rr2.nsp.treat, rr2.con, rr2.sp.treat, runs, seed)

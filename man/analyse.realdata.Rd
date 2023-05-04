@@ -2,7 +2,7 @@
 % Please edit documentation in R/analyseRealData.R
 \name{analyse.realdata}
 \alias{analyse.realdata}
-\title{Compute p-value for the overall treatment effect and for the 
+\title{Compute p-value for the overall treatment effect and for the
 interaction effect between the treatment and the predicted sensitivity status, for real data.}
 \usage{
 analyse.realdata(
@@ -57,8 +57,8 @@ eta,R,G: Significance level, threshold of the odds ratio and threshold for the n
 }
 \description{
 The sensitive group is identified according to the input method ("cvasd" for the cross-validated adaptive signature design or "cvrs" for the cross-validated risk scores design),
-significance level of the test for the sensitive group is 
-determined by the input proportion of the significance  
+significance level of the test for the sensitive group is
+determined by the input proportion of the significance
 level for the sensitive group (group.prop.sig) out of the overall significance (sig).
 The p-value for the overall treatment effect is computed using logistic regression with treatment allocation as a predictor.
 The p-value for the interaction effect between the treatment and the predicted sensitivity status is computed using logistic regression with the treatment effect, the effect for the predicted sensitivity status and the interaction effect.

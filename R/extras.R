@@ -282,9 +282,8 @@ print.1outcome=function (x, ...)
            rr.print = "Mean response rate in the sensitive group on the treatment arm: "
 
         }
-         toprint = paste ("\nPower for the overall test: ", signif(x$pwr.overall, 3),
-          "\nPower for the sensitive group: ", signif(x$pwr.group, 3),
-          "\nPower for adaptive design: ", signif(x$pwr.adaptive,3),
+         toprint = paste ("\nP-value for the overall test: ", signif(x$pval.overall, 3),
+          "\nP-value for the sensitive group: ", signif(x$pval.group, 3),
           "\n", sens.print, signif(mean(x$psens), 3),
           "\n", spec.print, signif(mean(x$pspec), 3),
           "\n", rr.print, signif(mean(x$estimate.rr, na.rm = T), 3),"\n", sep = "")
@@ -308,21 +307,19 @@ print.2outcomes=function (x, ...)
       if (ncol(x$estimate.rr) == 1) {
          sens.print = "\nSensitivity of identifying the sensitive group: "
          spec.print = "\nSpecificity of identifying the sensitive group: "
-         rr.print = "\nResponse rate in the sensitive group on the treatment arm: "
-         rr2.print = "\nResponse2 rate in the sensitive group on the treatment arm: "
+         rr.print = "\nRate of response in the sensitive group on the treatment arm: "
+         rr2.print = "\nRate of response2 in the sensitive group on the treatment arm: "
       } else {
          sens.print = "\nMean sensitivity of identifying the sensitive group: "
          spec.print = "\nMean specificity of identifying the sensitive group: "
-         rr.print = "\nMean response rate in the sensitive group on the treatment arm: "
-         rr2.print = "\nMean response2 rate in the sensitive group on the treatment arm: "
+         rr.print = "\nMean rate of response in the sensitive group on the treatment arm: "
+         rr2.print = "\nMean rate of response2 in the sensitive group on the treatment arm: "
       }
-      toprint = c(paste("\nPower for the overall test (response): ", signif(x$pwr.resp.overall, 3)),
-		   paste(c("\nPower for the sensitive group  (response): ", signif(x$pwr.resp.group, 3)), collapse = " "),
-                   paste (c("\nPower for adaptive design (response): ", signif(x$pwr.resp.adaptive,3)), collapse = " "),
-                   paste("\nPower for the overall test (response2): ", signif(x$pwr.resp2.overall, 3)),
-		   paste(c("\nPower for the sensitive group  (response2): ", signif(x$pwr.resp2.group, 3)), collapse = " "),
-                   paste (c("\nPower for adaptive design (response2): ", signif(x$pwr.resp2.adaptive,3)), collapse = " "),
-	           paste(c(sens.print, signif(rowMeans(x$psens), 3)), collapse = " "),
+      toprint = c(paste("\nP-value for the overall test (response): ", signif(x$pval.resp.overall, 3)),
+		   paste(c("\nP-value for the sensitive group  (response): ", signif(x$pval.resp.group, 3)), collapse = " "),
+       paste("\nP-value for the overall test (response2): ", signif(x$pval.resp2.overall, 3)),
+		   paste(c("\nP-value for the sensitive group  (response2): ", signif(x$pval.resp2.group, 3)), collapse = " "),
+       paste(c(sens.print, signif(rowMeans(x$psens), 3)), collapse = " "),
 		   paste(c(spec.print, signif(rowMeans(x$pspec), 3)), collapse = " "),
 		   paste(c(rr.print, signif(rowMeans(x$estimate.rr, na.rm = T), 3)), collapse = " "),
 		   paste(c(rr2.print, signif(rowMeans(x$estimate.rr2, na.rm = T), 3)), collapse = " "),
@@ -330,10 +327,10 @@ print.2outcomes=function (x, ...)
    } else { #Real data
       toprint = c(paste("\nP-value for the overall test (response): ", signif(x$pval.resp,3)),
 		  paste(c("\nP-value for the sensitive group test (response): ", signif(x$pval.resp.group, 3)), collapse = " "),
-		  paste(c("\nResponse1 rate in the sensitive group on the treatment arm:  ", signif(x$estimate.rr, 3)), collapse = " "),
+		  paste(c("\nRate of response in the sensitive group on the treatment arm:  ", signif(x$estimate.rr, 3)), collapse = " "),
 		  paste("\nP-value for the overall test (response2): ", signif(x$pval.resp2,3)),
                   paste(c("\nP-value for the sensitive group test (response2): ", signif(x$pval.resp2.group, 3)), collapse = " "),
-                  paste(c("\nResponse2 rate in the sensitive group on the treatment arm:  ", signif(x$estimate.rr2, 3)), collapse = " "),
+                  paste(c("\nRate of response2 in the sensitive group on the treatment arm:  ", signif(x$estimate.rr2, 3)), collapse = " "),
 		  "\n")
    }
    return(toprint)

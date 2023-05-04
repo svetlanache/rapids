@@ -277,7 +277,9 @@ analyse.realdata2 = function(datalist, nclust, sig = 0.05, group.prop.sig = 0.2,
      estimate.rr2[i] = resp2.treat/(resp2.treat + nonresp2.treat) #estimated response rate in the sensitive group in the treatment arm
   } ## end loop on clusters
 
-output = list(patients = patients, pval.resp = pval.resp, pval.resp2 = pval.resp2, stat.resp.group = stat.resp.group, pval.resp.group = pval.resp.group, stat.resp2.group = stat.resp2.group, pval.resp2.group = pval.resp2.group, estimate.rr = estimate.rr, estimate.rr2 = estimate.rr2, cvrs = sens$cvrs, cvrs2 = sens$cvrs2, cluster.pred = sens$cluster.pred)
+output = list(patients = patients, pval.resp = pval.resp, pval.resp2 = pval.resp2, stat.resp.group = stat.resp.group, 
+              pval.resp.group = pval.resp.group, stat.resp2.group = stat.resp2.group, pval.resp2.group = pval.resp2.group, 
+              estimate.rr = estimate.rr, estimate.rr2 = estimate.rr2, cvrs = sens$cvrs, cvrs2 = sens$cvrs2, cluster.pred = sens$cluster.pred)
    if (plotrs) {
 	   plotcvrs = cvrs2.plot(sens$cvrs, sens$cvrs2, sens$cluster.pred, NULL, FALSE)
 	   ggsave ("cvrs2.pdf", plotcvrs)

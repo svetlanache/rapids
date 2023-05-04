@@ -156,7 +156,7 @@ simulate.data <- function(N = 1000, L = 100, K=10,
 #' @param L Overall number of covariates.
 #' @param K Number of sensitive covariates that influence the response only.
 #' @param K2 Number of sensitive covariates that influence the response2 only.
-#' @param Ov Number of overlapping sensitive covariates (influence both the response and  response2).
+#' @param Both Number of overlapping sensitive covariates (influence both the response and  response2).
 #' @param mu1,sigma1,rho1 Mean, sd and correlation for sensitive covariates in sensitive patients.
 #' @param mu2,sigma2,rho2 Correlation parameter for sensitive covariates in non-sensitive patients.
 #' @param mu0,sigma0,rho Correlation parameter for non-sensitive covariates in all patients.
@@ -164,10 +164,12 @@ simulate.data <- function(N = 1000, L = 100, K=10,
 #' @param rr.nsp.treat  Response rate on the treatment arm in non-resp.sensitive patients.
 #' @param rr.con  Response rate on the control arm.
 #' @param rr.sp.treat  Response rate on the treatment arm in resp.sensitive patients.
-#' @param mu1.resp2, sigma1.resp2, rho1.resp2 Mean, sd and correlation for covariates that influence the response2
+#' @param mu1.resp2,sigma1.resp2,rho1.resp2 Mean, sd and correlation for covariates that influence the response2
+#' @param mu1.both,sigma1.both,rho1.both Mean, sd and correlation for overlaping covariates in sensitive patients.
+#' @param mu2.both,sigma2.both,rho2.both Mean, sd and correlation for overlaping covariates in non-sensitive patients.
 #' @param rr2.con Probability of response2 for the control arm
-#' @param rr2.low Probability of response2 for the non-resp2.sensitive patients in the treatment arm
-#' @param rr2.high Probability of response2 for the resp2.sensitive patients in the treatment arm
+#' @param rr2.nsp.treat Probability of response2 for the non-resp2.sensitive patients in the treatment arm
+#' @param rr2.sp.treat Probability of response2 for the resp2.sensitive patients in the treatment arm
 #' @param runs  Number of replicates to simulate.
 #' @param seed  A seed for the random number generator.
 #' @return A list of 4 data frames: patients, covar, response, response2
@@ -209,13 +211,12 @@ simulate.data <- function(N = 1000, L = 100, K=10,
 #' perc.sp = 0.1
 #' perc.sp2 = 0.1
 #' perc.sp.both = 0.1
-#' rr.nsp.treat = 0.25
 #' rr.con = 0.25
 #' rr.sp.treat = 0.8
 #' rr2.sp.treat = 0.8
+#' rr.nsp.treat = 0.25
 #' rr2.nsp.treat = 0.25
 #' rr2.con = 0.25
-#' rr2.rate.sp.treat = 0.8
 #' runs = 5
 #' seed = 123
 #' datalist2 = simulate.data2 (N , L , K1, K2, Both, rho1, rho2, rho0, mu1, mu2, mu0, sigma1, sigma2, sigma0, rho1.resp2, rho2.resp2, mu1.resp2, mu2.resp2, sigma1.resp2, sigma2.resp2,mu1.both, mu2.both, sigma1.both, sigma2.both, rho1.both, rho2.both, perc.sp, perc.sp2, perc.sp.both, rr.nsp.treat, rr.con, rr.sp.treat, rr2.nsp.treat, rr2.con, rr2.sp.treat, runs, seed)
@@ -234,18 +235,18 @@ simulate.data2 <- function(N = 1000, L = 100,
                      rho1.resp2 = 0, rho2.resp2 = 0,
                      mu1.resp2 = 1, mu2.resp2 = 0,
                      sigma1.resp2 = 0.5, sigma2.resp2 = 0.1,
-		     mu1.both = 1, mu2.both = 0, 
-		     sigma1.both = 0.5, sigma2.both = 0.1, 
-		     rho1.both = 0, rho2.both = 0, 
+		                 mu1.both = 1, mu2.both = 0, 
+		                 sigma1.both = 0.5, sigma2.both = 0.1, 
+		                 rho1.both = 0, rho2.both = 0, 
                      perc.sp = 0.1,
-		     perc.sp2 = 0.1,
-		     perc.sp.both = 0.1,
+		                 perc.sp2 = 0.1,
+		                 perc.sp.both = 0.1,
                      rr.nsp.treat = 0.25,
                      rr.con = 0.25,
                      rr.sp.treat = 0.8,
                      rr2.nsp.treat = 0.25,
                      rr2.con = 0.25,
-                     rr2.rate.sp.treat = 0.8,
+                     rr2.sp.treat = 0.8,
                      runs = 1, seed = 123)
 {
   covar = array(NA, c(runs, N, L))
@@ -315,7 +316,7 @@ simulate.data2 <- function(N = 1000, L = 100,
      ## Response sensitive patients 
      
      if (K1 == 0) {
-	resp.covar = matrix(nrow = N*perc.sp, ncol = 0)
+	      resp.covar = matrix(nrow = N*perc.sp, ncol = 0)
      } else {
         resp.covar = mvrnorm(n = N*perc.sp, m1, Sigma1, tol = 1e-6)
      }
@@ -325,12 +326,12 @@ simulate.data2 <- function(N = 1000, L = 100,
         resp2.covar = mvrnorm(n = N*perc.sp, m2.resp2, Sigma2.resp2, tol = 1e-6)
       }
      if (Both == 0) {
-	both.covar = matrix(nrow = N*perc.sp, ncol = 0)
+	      both.covar = matrix(nrow = N*perc.sp, ncol = 0)
      } else {
         both.covar = mvrnorm(n = N*perc.sp, m1.both, Sigma1.both, tol = 1e-6)
      }
      if (K0 == 0) {
-	other.covar = matrix(n = N*perc.sp, ncol = 0)
+	      other.covar = matrix(n = N*perc.sp, ncol = 0)
      } else {
         other.covar = mvrnorm(n = N*perc.sp, m0, Sigma0, tol = 1e-6)
      }
@@ -346,7 +347,7 @@ simulate.data2 <- function(N = 1000, L = 100,
         resp.covar = mvrnorm(n = N*perc.sp2, m2, Sigma2, tol = 1e-6)
      }
      if (K2 ==0) {
-	 resp2.covar = matrix(nrow = N*perc.sp2, ncol = 0)
+	      resp2.covar = matrix(nrow = N*perc.sp2, ncol = 0)
      } else {        
         resp2.covar = mvrnorm(n = N*perc.sp2, m1.resp2, Sigma1.resp2, tol = 1e-6)
      }
@@ -367,12 +368,12 @@ simulate.data2 <- function(N = 1000, L = 100,
      ## Patients sensitive to both responses
 
      if (K1 == 0) {
-	resp.covar = matrix(nrow = N*perc.sp.both, ncol = 0)
+	      resp.covar = matrix(nrow = N*perc.sp.both, ncol = 0)
      } else {
         resp.covar = mvrnorm(n = N*perc.sp.both, m1, Sigma1, tol = 1e-6)
      }
      if (K2 == 0) {
-	resp2.covar = matrix(nrow = N*perc.sp.both, ncol = 0)
+	      resp2.covar = matrix(nrow = N*perc.sp.both, ncol = 0)
      } else {
         resp2.covar = mvrnorm(n = N*perc.sp.both, m1.resp2, Sigma1.resp2, tol = 1e-6)
      }
@@ -382,7 +383,7 @@ simulate.data2 <- function(N = 1000, L = 100,
         both.covar = mvrnorm(n = N*perc.sp.both, m1.both, Sigma1.both, tol = 1e-6)
      }
      if (K0 == 0) {
-	other.covar = matrix(nrow = N*perc.sp.both, ncol = 0)
+	      other.covar = matrix(nrow = N*perc.sp.both, ncol = 0)
      } else {
         other.covar = mvrnorm(n = N*perc.sp.both, m0, Sigma0, tol = 1e-6)
      }
@@ -395,12 +396,12 @@ simulate.data2 <- function(N = 1000, L = 100,
 
      NN = N*(1 - perc.sp - perc.sp2 - perc.sp.both)
      if (K1 == 0) {
-	resp.covar = matrix(nrow = NN, ncol = 0)
+	      resp.covar = matrix(nrow = NN, ncol = 0)
      } else {
         resp.covar = mvrnorm(n = NN, m2, Sigma2, tol = 1e-6)
      }
      if (K2 == 0) {
-	resp2.covar = matrix(nrow = NN, ncol = 0)
+	      resp2.covar = matrix(nrow = NN, ncol = 0)
      } else {
         resp2.covar = mvrnorm(n = NN, m2.resp2, Sigma2.resp2, tol = 1e-6)
      }
@@ -410,7 +411,7 @@ simulate.data2 <- function(N = 1000, L = 100,
         both.covar = mvrnorm(n = NN, m2.both, Sigma2.both, tol = 1e-6)
      }
      if (K0 == 0) {
-	other.covar = matrix(nrow = NN, ncol = 0)
+	      other.covar = matrix(nrow = NN, ncol = 0)
      } else {
         other.covar = mvrnorm(n = NN, m0, Sigma0, tol = 1e-6)
      }

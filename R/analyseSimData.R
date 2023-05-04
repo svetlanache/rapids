@@ -106,12 +106,12 @@ analyse.simdata <- function(datalist, sig = 0.05, group.prop.sig = 0.2,
    N = nrow(response)
    N.treat = nrow(patients[patients$treat == 1,])
    N.con = nrow(patients[patients$treat == 0,])
-   pval = apply (response, 2, function (y)
+   pval.overall = apply (response, 2, function (y)
    {
             prop.test(x = c(sum(y[patients$treat == 0]), sum(y[patients$treat == 1])),
                    n = c(N.con, N.treat), alternative = "two.sided")$p.value
    })
-   pwr.overall = sum(pval < sig.overall)/runs  
+   pwr.overall = sum(pval.overall < sig.overall)/runs  
 
    ## Power for the sensitive group test
    res = apply(response, 2, function(x) 
@@ -159,7 +159,8 @@ analyse.simdata <- function(datalist, sig = 0.05, group.prop.sig = 0.2,
    pwr.adaptive = pwr.overall + (1-pwr.overall)*pwr.group
 
    output = switch(method, cvasd = list(patients = patients, pwr.overall = pwr.overall, pwr.group = pwr.group, pwr.adaptive = pwr.adaptive, estimate.rr = estimate.rr, psens = psens, pspec = pspec, sens.pred = sens.pred, eta = eta, R = R, G = G),
-                   cvrs = list(patients = patients, pwr.overall = pwr.overall, pwr.group = pwr.group, pwr.adaptive = pwr.adaptive, estimate.rr = estimate.rr, psens = psens, pspec = pspec, sens.pred = sens.pred, cvrs = cvrs)) 
+                   cvrs = list(patients = patients, pwr.overall = pwr.overall, pwr.group = pwr.group, pwr.adaptive = pwr.adaptive, estimate.rr = estimate.rr, psens = psens, pspec = pspec, sens.pred = sens.pred, cvrs = cvrs,
+                               pval.group = pval.group, pval.overall = pval.overall)) 
 
    if (method == "cvrs" & plotrs) cvrs.plot(cvrs, sens.pred)
 
@@ -255,25 +256,25 @@ analyse.simdata2 <- function(datalist, nclust, sig = 0.05, group.prop.sig = 0.2,
    sig.overall = sig - sig.group
 
    ## Power for the overall arm comparison 
-   pval.resp = numeric(length = runs)
-   pval.resp2 = numeric(length = runs)
+   pval.resp.overall = numeric(length = runs)
+   pval.resp2.overall = numeric(length = runs)
    for (i in 1:runs) {
       mod = tryCatch({vglm(cbind(response[,i], response2[,i]) ~ patients$treat, binom2.or)}, error = function(e) e, warning = function(w) w)
       if (is(mod, "error") | is(mod, "warning")) {
-         pval.resp[i] = 1
-         pval.resp2[i] = 1
+        pval.resp.overall[i] = 1
+        pval.resp2.overall[i] = 1
       } else if (is.na(logLik(mod))) {
-         pval.resp[i] = 1
-         pval.resp2[i] = 1
+        pval.resp.overall[i] = 1
+        pval.resp2.overall[i] = 1
       } else {
          sum.mtx = coef(summary(mod))
-         pval.resp[i] = sum.mtx[rownames(sum.mtx) == "patients$treat:1", colnames(sum.mtx) == "Pr(>|z|)"]
-         pval.resp2[i] = sum.mtx[rownames(sum.mtx) == "patients$treat:2", colnames(sum.mtx) == "Pr(>|z|)"]
+         pval.resp.overall[i] = sum.mtx[rownames(sum.mtx) == "patients$treat:1", colnames(sum.mtx) == "Pr(>|z|)"]
+         pval.resp2.overall[i] = sum.mtx[rownames(sum.mtx) == "patients$treat:2", colnames(sum.mtx) == "Pr(>|z|)"]
       }
    }
 
-   pwr.resp.overall = sum(pval.resp < sig.overall)/runs
-   pwr.resp2.overall = sum(pval.resp2 < sig.overall)/runs
+   pwr.resp.overall = sum(pval.resp.overall < sig.overall)/runs
+   pwr.resp2.overall = sum(pval.resp2.overall < sig.overall)/runs
 
    sens = list()
    pval.resp = matrix (nrow = nclust, ncol = runs)
@@ -345,7 +346,9 @@ analyse.simdata2 <- function(datalist, nclust, sig = 0.05, group.prop.sig = 0.2,
    pwr.resp.adaptive = pwr.resp.overall + (1-pwr.resp.overall)*pwr.resp.group
    pwr.resp2.adaptive = pwr.resp2.overall + (1-pwr.resp2.overall)*pwr.resp2.group
 
-   output = list(patients = patients, pwr.resp.overall = pwr.resp.overall, pwr.resp2.overall = pwr.resp2.overall, pwr.resp.group = pwr.resp.group, pwr.resp2.group = pwr.resp2.group, pwr.resp.adaptive = pwr.resp.adaptive, pwr.resp2.adaptive = pwr.resp2.adaptive, estimate.rr = estimate.rr, estimate.rr2 = estimate.rr2, psens = psens, pspec = pspec, cvrs = cvrs, cvrs2 = cvrs2, cluster.pred = cluster.pred)
+   output = list(patients = patients, pwr.resp.overall = pwr.resp.overall, pwr.resp2.overall = pwr.resp2.overall, pwr.resp.group = pwr.resp.group, pwr.resp2.group = pwr.resp2.group, pwr.resp.adaptive = pwr.resp.adaptive, pwr.resp2.adaptive = pwr.resp2.adaptive, estimate.rr = estimate.rr, estimate.rr2 = estimate.rr2, psens = psens, pspec = pspec, cvrs = cvrs, cvrs2 = cvrs2, cluster.pred = cluster.pred,
+                 pval.resp.overall = pval.resp.overall, pval.resp2.overall = pval.resp2.overall,
+                 pval.resp.group = pval.resp, pval.resp2.group = pval.resp2)
 
    if (plotrs) {
       plotcvrs = cvrs2.plot(cvrs, cvrs2, cluster.pred, patients$cluster.true, TRUE)

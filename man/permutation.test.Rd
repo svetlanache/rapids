@@ -45,7 +45,7 @@ seed = 123
 plotrs = T
 eta = NULL
 R = NULL
-G = NULL 
+G = NULL
 realres.cvrs = analyse.realdata(realdata, sig, group.prop.sig, method, eta, R, G, seed, plotrs)
 #Permutation test
 reps = 10
