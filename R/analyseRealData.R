@@ -207,7 +207,7 @@ analyse.realdata2 = function(datalist, nclust, sig = 0.05, group.prop.sig = 0.2,
    }
    #if (!((length(response) == nrow(patients)) & (nrow(patients) == nrow(covar)))) {
    #  stop ("Patients data, covariate data and response data dimensions do not match.")
-   }
+   #}
    if (!(is.numeric(sig) & (length(sig) == 1) & (sig > 0) & (sig < 1))) {
       stop ("Significance level sould be between 0 and 1.")
    }
