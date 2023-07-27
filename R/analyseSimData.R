@@ -158,7 +158,7 @@ analyse.simdata <- function(datalist, sig = 0.05, group.prop.sig = 0.2,
    ## Overall power of the adaptive design
    pwr.adaptive = pwr.overall + (1-pwr.overall)*pwr.group
 
-   output = switch(method, cvasd = list(patients = patients, pwr.overall = pwr.overall, pwr.group = pwr.group, pwr.adaptive = pwr.adaptive, estimate.rr = estimate.rr, psens = psens, pspec = pspec, sens.pred = sens.pred, eta = eta, R = R, G = G),
+   output = switch(method, cvasd = list(patients = patients, pwr.overall = pwr.overall, pwr.group = pwr.group, pwr.adaptive = pwr.adaptive, estimate.rr = estimate.rr, psens = psens, pspec = pspec, sens.pred = sens.pred, eta = eta, R = R, G = G, pval.group = pval.group, pval.overall = pval.overall),
                    cvrs = list(patients = patients, pwr.overall = pwr.overall, pwr.group = pwr.group, pwr.adaptive = pwr.adaptive, estimate.rr = estimate.rr, psens = psens, pspec = pspec, sens.pred = sens.pred, cvrs = cvrs,
                                pval.group = pval.group, pval.overall = pval.overall)) 
 
