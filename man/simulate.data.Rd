@@ -22,7 +22,7 @@
   rr.con = 0.25,
   rr.sp.treat = 0.6,
   runs = 1,
-  seed = 123
+  seed = NULL
 )
 }
 \arguments{
