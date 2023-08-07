@@ -65,9 +65,13 @@ simulate.data <- function(N = 1000, L = 100, K=10,
                      rr.nsp.treat = 0.25,
                      rr.con = 0.25,
                      rr.sp.treat = 0.6, 
-		     runs = 1, seed = 123)
+		     runs = 1, seed = NULL)
 {
 
+  if (!is.null(seed)) {
+    set.seed(seed)
+  } 
+  
   mu = log(rr.con/(1-rr.con)) #intercept corresponding to response rate for controls
   lambda = log(rr.nsp.treat/(1-rr.nsp.treat)) - mu  #main treatment effect
   interaction.scaling = log(rr.sp.treat/(1-rr.sp.treat)) - mu - lambda #interaction scaling 
