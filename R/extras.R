@@ -78,25 +78,25 @@ cvrs2.plot = function(cvrs, cvrs2, cluster.pred, cluster.true = NULL, sim = FALS
 
 {
    runs = ncol(cvrs)
-   cluster.pred = as.vector(cluster.pred)
+   cluster.pred = as.factor(as.vector(cluster.pred))
    cvrs.vec = as.vector(cvrs)
    cvrs2.vec = as.vector(cvrs2)
 
   if (sim) {
-     cluster.true = rep(cluster.true, runs)
+     cluster.true = as.factor(rep(cluster.true, runs))
      dat = data.frame(cvrs.vec, cvrs2.vec, cluster.pred, cluster.true)
      plotcvrs = ggplot(dat, aes(x = cvrs.vec, y=cvrs2.vec, color = cluster.pred)) +
      geom_point(fill = "transparent", shape = 21, size = 2, stroke = 0.5) +
      labs(x = "CVRS", y = "CVRS2", title = "Risk scores coloured by the predicted clusters") +
      theme(legend.position = "bottom") +
-     scale_colour_continuous(name  = "Predicted clusters") +
+     scale_colour_discrete(name  = "Predicted clusters") +
      guides(colour = guide_legend(override.aes = list(shape = 15)))
 
      plot.sim = ggplot(dat, aes(x = cvrs.vec, y=cvrs2.vec, color = cluster.true)) +
      geom_point(fill = "transparent", shape = 21, size = 2, stroke = 0.5) +
      labs(x = "CVRS", y = "CVRS2", title = "Risk scores coloured by the true clusters") +
      theme(legend.position = "bottom") +
-     scale_colour_continuous(name  = "True clusters") +
+     scale_colour_discrete(name  = "True clusters") +
      guides(colour = guide_legend(override.aes = list(shape = 15)))
      plot.temp = plotcvrs
      plotcvrs = grid.arrange(plot.temp, plot.sim, ncol=1)
@@ -106,7 +106,7 @@ cvrs2.plot = function(cvrs, cvrs2, cluster.pred, cluster.true = NULL, sim = FALS
      geom_point(fill = "transparent", shape = 21, size = 2, stroke = 0.5) +
      labs(x = "CVRS", y = "CVRS2", title = "Risk scores coloured by the predicted clusters") +
      theme(legend.position = "bottom") +
-     scale_colour_continuous(name  = "Predicted clusters") +
+     scale_colour_discrete(name  = "Predicted clusters") +
      guides(colour = guide_legend(override.aes = list(shape = 15)))
   }
    return(plotcvrs)
