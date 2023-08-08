@@ -71,7 +71,7 @@ cvrs.plot = function(cvrs, sens.pred)
 #' @seealso
 #' \code{\link{analyse.simdata2}} and \code{\link{analyse.realdata2}} functions; \code{\link{plot}} and \code{\link{print}} methods.
 #' @export
-#' @importFrom "ggplot2" "ggplot" "aes" "geom_point" "labs" "theme" "scale_colour_continuous" "guides" "guide_legend"
+#' @importFrom "ggplot2" "ggplot" "aes" "geom_point" "labs" "theme" "scale_colour_discrete" "guides" "guide_legend"
 #' @importFrom "gridExtra" "grid.arrange"
 
 cvrs2.plot = function(cvrs, cvrs2, cluster.pred, cluster.true = NULL, sim = FALSE)
