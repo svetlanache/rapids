@@ -95,15 +95,15 @@ simulate.data <- function(N = 1000, L = 100, K=10,
   diag(Sigma0) = sigma0^2 
   
   ## Simulate covariates for sensitive patients
-  scovar.sp = mvrnorm(n = N*perc.sp, m1, Sigma1, tol = 1e-6) #sensitive covariates
-  nscovar.sp = mvrnorm(n = N*perc.sp, m0, Sigma0, tol = 1e-6) #non-sensitive covariates
+  scovar.sp = mvrnorm(n = floor(N*perc.sp), m1, Sigma1, tol = 1e-6) #sensitive covariates
+  nscovar.sp = mvrnorm(n = floor(N*perc.sp), m0, Sigma0, tol = 1e-6) #non-sensitive covariates
   sp = cbind(scovar.sp, nscovar.sp) 
   sp = as.data.frame(sp)
   sp$sens.true = 1 
   
   ## Simulate covariates for non-sensitive patients
-  scovar.nsp = mvrnorm(n = N*(1-perc.sp), m2, Sigma2, tol = 1e-6) #sensitiv covariates
-  nscovar.nsp = mvrnorm(n = N*(1-perc.sp), m0, Sigma0, tol = 1e-6) #non-sensitive covariates
+  scovar.nsp = mvrnorm(n = N - floor(N*perc.sp), m2, Sigma2, tol = 1e-6) #sensitiv covariates
+  nscovar.nsp = mvrnorm(n = N - floor(N*perc.sp), m0, Sigma0, tol = 1e-6) #non-sensitive covariates
   nsp = cbind(scovar.nsp, nscovar.nsp) 
   nsp = as.data.frame(nsp)
   nsp$sens.true = 0 
