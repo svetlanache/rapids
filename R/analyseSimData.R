@@ -74,6 +74,7 @@ analyse.simdata <- function(datalist, sig = 0.05, group.prop.sig = 0.2,
    patients = datalist$patients
    covar = datalist$covar
    response = datalist$response
+   msg = NULL
 
    if (is.null(dim(patients))) {
       stop ("Patients data is missing.")
@@ -153,14 +154,17 @@ analyse.simdata <- function(datalist, sig = 0.05, group.prop.sig = 0.2,
       sens.pred[,i] = res[[i]]$sens.pred
       if (method == "cvrs") cvrs[,i] = res[[i]]$cvrs
    }
+
+  if (!any(sens.pred)) {msg = "Sensitive group is not found."}
    pwr.group = sum(pval.group < sig.group)/runs
 
    ## Overall power of the adaptive design
    pwr.adaptive = pwr.overall + (1-pwr.overall)*pwr.group
 
-   output = switch(method, cvasd = list(patients = patients, pwr.overall = pwr.overall, pwr.group = pwr.group, pwr.adaptive = pwr.adaptive, estimate.rr = estimate.rr, psens = psens, pspec = pspec, sens.pred = sens.pred, eta = eta, R = R, G = G),
+   output = switch(method, cvasd = list(patients = patients, pwr.overall = pwr.overall, pwr.group = pwr.group, pwr.adaptive = pwr.adaptive, estimate.rr = estimate.rr, psens = psens, pspec = pspec, 
+                                        sens.pred = sens.pred, eta = eta, R = R, G = G, pval.group = pval.group, pval.overall = pval.overall, msg = msg),
                    cvrs = list(patients = patients, pwr.overall = pwr.overall, pwr.group = pwr.group, pwr.adaptive = pwr.adaptive, estimate.rr = estimate.rr, psens = psens, pspec = pspec, sens.pred = sens.pred, cvrs = cvrs,
-                               pval.group = pval.group, pval.overall = pval.overall)) 
+                               pval.group = pval.group, pval.overall = pval.overall, msg = msg)) 
 
    if (method == "cvrs" & plotrs) cvrs.plot(cvrs, sens.pred)
 
