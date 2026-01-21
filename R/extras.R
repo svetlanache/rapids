@@ -226,13 +226,13 @@ permutation.test <- function(realdata, res, method, reps)
   rownames(sens.pred) = seq(1:nrow(realdata$patients))
   stat.group = st[rownames(st) == "stat.group",]
 
-  ppval.group = (1+sum(stat.group > stat0.group))/(1+reps) #permutation p-value for the treatment-sensitivity interaction effect
+  ppval.group = (1 + sum(stat.group > stat0.group))/(1 + reps) #permutation p-value for the treatment-sensitivity interaction effect
 
   res.perm = list(stat0.group = as.numeric(stat0.group), treat = treat, sens.pred = sens.pred,
              stat.group = as.numeric(stat.group),
              ppval.group = as.numeric(ppval.group))
 
-  return (res.perm)
+  return(res.perm)
 }
 
   perm = function(realdata, res, method, treat0) {
@@ -265,7 +265,7 @@ permutation.test <- function(realdata, res, method, reps)
 ############################
 
 ## print.1outcome
-
+#' @export
 print.1outcome=function (x, ...)
 {
   if (!is.null(x$msg)) {
@@ -300,7 +300,7 @@ print.1outcome=function (x, ...)
 
 
 ## print.2outcomes
-
+#' @export
 print.2outcomes=function (x, ...)
 {
    if (with(x, exists('psens'))) { #Simulated data
@@ -339,7 +339,7 @@ print.2outcomes=function (x, ...)
 
 
 ## plot.1outcome
-
+#' @export
 plot.1outcome = function(x, ...)
 {
    x$sens.pred = as.matrix(x$sens.pred)
@@ -406,6 +406,7 @@ plot.1outcome = function(x, ...)
 }
 
 ### plot.2outcomes
+#' @export
 plot.2outcomes = function(x, ...)
 {
    ## Plot CVRS
